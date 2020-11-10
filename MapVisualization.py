@@ -3,12 +3,12 @@ from matplotlib import pyplot as plt
 
 
 class MapVisualizer:
-    def __init__(self,size_meters,pixels):
-        # size_meters: estimated map size, e.g. 10m x 10m
-        # pixels: map matrix size, e.g. [1000,1000]
+    def __init__(self,size_meters,resolution):
+        # size_meters: estimated map size,e.g. [10,11] for  10m x 11m
+        # resolution: meters/matrix_size, if the map=[10,11] and the matrix.shape=[1100,1000], resolution=0.01
         self.size_meters=size_meters
-        self.pixels=pixels
-        self.resolution=size_meters/pixels
+        self.pixels=size_meters/resolution
+        self.resolution=resolution
         self.vehicle=None
         self.img=None
         self.setlabels()
@@ -22,14 +22,16 @@ class MapVisualizer:
         self.ax.set_ylabel('Y (m)')
         self.ax.grid(False)
         plt.title('GMAPPING')
-        self.ax.set_xlim([0, self.pixels])
-        self.ax.set_ylim([0, self.pixels])
-        ticks=np.arange(0,self.size_meters+1)
-        labels = [str(tick) for tick in ticks]
-        self.ax.set_xticks(ticks/self.resolution)
-        self.ax.set_yticks(ticks/self.resolution)
-        self.ax.set_xticklabels(labels)
-        self.ax.set_yticklabels(labels)
+        self.ax.set_xlim([0, self.pixels[0]])
+        self.ax.set_ylim([0, self.pixels[1]])
+        xticks=np.arange(0,self.size_meters[0]+1)
+        yticks=np.arange(0,self.size_meters[1]+1)
+        xlabels = [str(xtick) for xtick in xticks]
+        ylabels = [str(ytick) for ytick in yticks]
+        self.ax.set_xticks(xticks/self.resolution)
+        self.ax.set_yticks(yticks/self.resolution)
+        self.ax.set_xticklabels(xlabels)
+        self.ax.set_yticklabels(ylabels)
 
     def visualize(self,X,map_matrix):
         # X: [x,y,theta]
@@ -53,10 +55,11 @@ class MapVisualizer:
 
 
 # # Example in 25 steps:
-# map_visualizer=MapVisualizer(8,1000)
+# map=np.array([8,9])
+# map_visualizer=MapVisualizer(map,0.01)
 # for i in range(25):
 #     X = [0.2*i, 0.3*i, i*np.pi / 4]
-#     test=np.random.rand(1000000).reshape((1000,1000))
+#     test=np.random.rand(720000).reshape((900,800))
 #     map_visualizer.visualize(X,test)
 
 
