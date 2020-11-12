@@ -85,7 +85,7 @@ def integrateScan(gridmap, pose, z, max_range):
             new_l_map[i,j] = gridmap.l_map[i,j] + inverse_range_sensor_model(i, j, gridmap, pose, z, direction_array, max_range) - gridmap.l0
     
     # Calculate normalized probablity form log-odds
-    new_p_map = 1 - (1 ./ (1 + np.exp(new_l_map)))
+    new_p_map = 1 - (1 / (1 + np.exp(new_l_map)))
 
 
     return new_l_map, new_p_map

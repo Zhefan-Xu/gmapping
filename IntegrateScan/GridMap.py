@@ -8,6 +8,8 @@ class GridMap:
         size_x = int(length/map_resolution)
         size_y = int(width/map_resolution)
 
+        self.size_x = size_x
+
         #self.grid_map = np.zeros((size_x, size_y))
         self.length = length
         self.width = width
