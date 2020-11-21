@@ -2,11 +2,18 @@ import numpy as np
 from GridMap import GridMap
 
 def wraptopi(theta):
-    while (theta > np.pi):
-        theta -= np.pi * 2 
 
-    while (theta < -np.pi):
-        theta += np.pi * 2
+    if np.ndim(theta) == 0:
+
+        while (theta > np.pi):
+            theta -= np.pi * 2 
+
+        while (theta < -np.pi):
+            theta += np.pi * 2
+    else:
+        
+        theta[theta > np.pi] -= np.pi * 2
+        theta[theta < -np.pi] += np.pi * 2
 
     return theta
 
@@ -32,7 +39,7 @@ def inverse_range_sensor_model(ii, jj, gridmap, pose, z, direction_array, max_ra
     '''
     
     alpha = 0.2   # thickness of obstacles
-    beta = 0.01   # width of sensor beam
+    beta = 0.02   # width of sensor beam
 
     # center of mass of cell
     xc = (ii + 0.5) * gridmap.resolution
@@ -45,10 +52,10 @@ def inverse_range_sensor_model(ii, jj, gridmap, pose, z, direction_array, max_ra
     theta = np.arctan2(yc-pose[1],xc-pose[0])
 
     # find the closest beam index
-    k = np.argmin(np.absolute(theta - direction_array))
+    k = np.argmin(np.absolute(wraptopi(theta - direction_array)))
 
     # if the cell center is outside the beam range
-    if r > min(max_range, z[k]) + alpha/2 or np.abs(theta - direction_array[k]) > beta/2:
+    if r > min(max_range, z[k]) + alpha/2 or np.abs(wraptopi(theta - direction_array[k])) > beta/2:
         return gridmap.l0
     elif r < max_range and np.abs(r - z[k]) < alpha/2: # if it is occupied
         return gridmap.l_occ
@@ -75,18 +82,17 @@ def integrateScan(gridmap, pose, z, max_range):
     x_ub = min(gridmap.length, x + max_range)
     y_lb = max(0, y - max_range)
     y_ub = min(gridmap.width, y + max_range)
-    index_x_lb = np.floor(x_lb/gridmap.resolution)
-    index_x_ub = np.floor(x_ub/gridmap.resolution)
-    index_y_lb = np.floor(y_lb/gridmap.resolution)
-    index_y_ub = np.floor(y_ub/gridmap.resolution)
+    index_x_lb = np.floor(x_lb/gridmap.resolution).astype(int)
+    index_x_ub = np.floor(x_ub/gridmap.resolution).astype(int)
+    index_y_lb = np.floor(y_lb/gridmap.resolution).astype(int)
+    index_y_ub = np.floor(y_ub/gridmap.resolution).astype(int)
 
     for i in range(index_x_lb, index_x_ub):
         for j in range(index_y_lb, index_y_ub):
             new_l_map[i,j] = gridmap.l_map[i,j] + inverse_range_sensor_model(i, j, gridmap, pose, z, direction_array, max_range) - gridmap.l0
     
     # Calculate normalized probablity form log-odds
-    new_p_map = 1 - (1 / (1 + np.exp(new_l_map)))
-
+    new_p_map = 1 - (1. / (1 + np.exp(new_l_map)))
 
     return new_l_map, new_p_map
 
