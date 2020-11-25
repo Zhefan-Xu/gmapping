@@ -121,27 +121,6 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
 def calculate_P (y_laser, y_pred, sigma):
 
     # y_laser: 2D array of laser measurement results
