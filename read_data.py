@@ -21,7 +21,7 @@ def main():
 	map_resolution = 0.1
 	gridmap = GridMap(map_resolution, length, width)
 	pixels = gridmap.size_x
-	# map_visualizer = MapVisualizer(length, pixels)
+	map_visualizer = MapVisualizer(length, pixels)
 
 	# First Measurment:
 	first_measurment = True
@@ -29,6 +29,7 @@ def main():
 	num_particle = 3
 
 	X = np.array([5, 3, np.pi/2]) # Initialization for pose
+	#X = np.array([0, 0, 0]) # Initialization for pose
 
 	# initialzie particle
 	particles = []
@@ -52,16 +53,20 @@ def main():
 
 
 		if (first_measurment):
-			integrate_X = X
-			integrate_X[0], integrate_X[1] = X[1], X[0]
-			gridmap.l_map, gridmap.p_map = integrateScan(gridmap, integrate_X, meas_vals, max_range)
-			for i in range(num_particle):
-				particles[i][1] = copy.deepcopy(gridmap)
-			# np.savetxt("1stmap.txt", gridmap.p_map, fmt="%.2f")
-			# plt.imshow(gridmap.p_map)
-			#plt.colorbar()
-			# plt.show(block=True)
-			first_measurment = False
+			if meas_type == "O":
+				pass
+			elif meas_type == "L":
+				integrate_X = X
+				#integrate_X[0], integrate_X[1] = X[1], X[0]
+				print(meas_vals)
+				gridmap.l_map, gridmap.p_map = integrateScan(gridmap, integrate_X, meas_vals, max_range)
+				for i in range(num_particle):
+					particles[i][1] = copy.deepcopy(gridmap)
+				# np.savetxt("1stmap.txt", gridmap.p_map, fmt="%.2f")
+				plt.imshow(np.rot90(gridmap.p_map, 1, (1, 0)))
+				#plt.colorbar()
+				plt.show(block=True)
+				first_measurment = False
 		else:
 			for particle in particles:
 				[pose, gridmap, weight] = particle
