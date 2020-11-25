@@ -19,6 +19,8 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
     #Questions: 
     #do we have to flip coordinates of the grid_map? 
 
+    object_detect = 0.2 #tunable parameter
+
     N = 360 
 
     x = pose[0]
@@ -102,7 +104,7 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
                 side = 1
                 # print("in y dir delta ",deltaDistY," sideDistY ",sideDistY," mapx ",mapX," mapy ",mapY)
 
-            if (gridmap[mapY][mapX] > 0.2 or gridmap[mapY][mapX] == -1):
+            if (gridmap[mapY][mapX] > object_detect or gridmap[mapY][mapX] == -1):
                 # print("hit wall at x ",mapX, " y ",mapY)
                 hitWall = 1
         
