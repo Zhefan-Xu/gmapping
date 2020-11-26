@@ -74,7 +74,8 @@ def integrateScan(gridmap, pose, z, max_range):
     new_p_map = gridmap.p_map
 
     meas_range = 2*np.pi
-    start_direction = theta - np.pi/2
+    # start_direction = theta - np.pi/2
+    start_direction = theta
     direction_array = np.array([start_direction + i*meas_range/N for i in range(N)]) # 0 - 359
 
     # narrow down the update range to a square shape whose center is current pose
@@ -94,6 +95,7 @@ def integrateScan(gridmap, pose, z, max_range):
     # Calculate normalized probablity form log-odds
     new_p_map = 1 - (1. / (1 + np.exp(new_l_map)))
 
+    # return np.flipud(new_l_map), np.flipud(new_p_map)
     return new_l_map, new_p_map
 
 if __name__ == "__main__":

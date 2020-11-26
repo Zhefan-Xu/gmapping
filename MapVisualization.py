@@ -22,7 +22,7 @@ class MapVisualizer:
         self.ax.set_ylabel('Y (m)')
         self.ax.grid(False)
         plt.title('GMAPPING')
-        self.ax.set_xlim([0, self.pixels])
+        # self.ax.set_xlim([0, self.pixels])
         self.ax.set_ylim([0, self.pixels])
         ticks=np.arange(0,self.size_meters+1)
         labels = [str(tick) for tick in ticks]
@@ -42,9 +42,9 @@ class MapVisualizer:
         if self.vehicle:
             self.vehicle.remove()
         self.vehicle=self.ax.arrow(X[0]/self.resolution, X[1]/self.resolution,
-                0.1*np.cos(X[2]), 0.1*np.sin(X[2]), head_width=10, fc='r', ec='r')
+                0.1*np.cos(X[2]), 0.1*np.sin(X[2]), head_width=2, fc='r', ec='r')
         if self.img is None:
-            self.img = self.ax.imshow(map_matrix, cmap='Greys')
+            self.img = self.ax.imshow(map_matrix.T, cmap='Greys')
         else:
             self.img.set_data(map_matrix)
         plt.pause(0.0001)

@@ -1,7 +1,8 @@
 import numpy as np 
 import math
 from scipy.stats import norm 
-from IntegrateScan import wrapToPi
+import sys
+from motion_model import wrapToPi
 from GridMap import GridMap
 
 
@@ -123,7 +124,7 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
 
 
 
-def calculate_P (y_laser, y_pred, sigma):
+def calculate_P(y_laser, y_pred, sigma):
 
     # y_laser: 2D array of laser measurement results
     # y_pred:  2D array of laser predicted measurment results based on position
