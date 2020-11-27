@@ -42,6 +42,7 @@ def ICP(pc_true, pc_est):
 	last_error = error + 100
 	R_total = np.eye(2)
 	T_total = np.zeros(2)
+	# print(pc_true[:10], pc_est[:10])
 	while (error > error_thresh or error_decrease):
 
 		# Step 1: Calculate center and subtract cneter for each pointcloud data

@@ -104,10 +104,15 @@ def main():
 					meas_true_usable = np.array(meas_true_usable)
 					meas_est_usable = np.array(meas_est_usable)
 
+					# print(meas_true_usable[:5], meas_est_usable[:5])
+					# return
+
 					# Step 3: convert measurement to pointcloud in world frame
 					pc_true = meas_to_pointcloud(meas_true_usable, pose)
 					pc_est = meas_to_pointcloud(meas_est_usable, pose)
 
+					# print(pc_true[:5], pc_est[:5])
+					# return 
 
 					# Step 4: Perform ICP to get the tranform matrix
 					transform = ICP(pc_true, pc_est)
