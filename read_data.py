@@ -25,7 +25,7 @@ def main():
 	gridmap = GridMap(map_resolution, length, width)
 
 	pixels = gridmap.size_x
-	map_visualizer = MapVisualizer(length, pixels)
+	# map_visualizer = MapVisualizer(length, pixels)
 
 	# First Measurment:
 	first_measurment = True
@@ -62,12 +62,12 @@ def main():
 			gridmap.l_map, gridmap.p_map = integrateScan(gridmap, initial_pose, meas_vals, max_range)
 			for i in range(num_particle):
 				particles[i][1] = copy.deepcopy(gridmap)
-			map_visualizer.visualize(initial_pose, gridmap.p_map)
+			# map_visualizer.visualize(initial_pose, gridmap.p_map)
 			# plt.show(block=True)
 			first_measurment = False
 
-			meas_est = ray_casting(initial_pose, gridmap, max_range)
-			meas_est = meas_est[1,:]
+			# meas_est = ray_casting(initial_pose, gridmap, max_range)
+			# meas_est = meas_est[1,:]
 			# print(meas_est)
 			# return
 		
@@ -87,7 +87,8 @@ def main():
 					# Step 1: get estimated sensor measurement from estimated pose and previous map
 					meas_vals = meas_vals[:-1] # the last term is time
 					meas_true = meas_vals # shape [1, 360] 
-					#meas_est = ray_casting(pose, gridmap)
+					meas_est = ray_casting(pose, gridmap, max_range)
+					meas_est = meas_est[1,:]
 
 					# Step 2: Find the useable laser beams: range < max_range for both estimate and true
 					meas_true_usable = [] 
