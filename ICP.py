@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 def cal_distance(p1, p2):
 	diff_x = p1[0] - p2[0] 
@@ -22,7 +23,7 @@ def find_closest_point(p, pc):
 def cal_error(pc_true, pc_est):
 	total_distance = 0
 	for point_est in pc_est:
-		closest_point, closest_point_idx = find_closest_point(point, pc_true)
+		closest_point, closest_point_idx = find_closest_point(point_est, pc_true)
 		distance = cal_distance(point_est, closest_point)
 		total_distance += distance
 	return total_distance
@@ -57,26 +58,31 @@ def ICP(pc_true, pc_est):
 
 			# Incrementally add cross covariance matrix
 			close_pc_true_norm = pc_true_norm[closest_point_idx]
-			W += close_pc_true_norm * point_est_norm.T
+			W += close_pc_true_norm @ point_est_norm.T
 
 		# Step 3: Apply Numpy SVD decomposition: (Not sure)
 		U, D, V_T = np.linalg.svd(W)
 
 		# Step 4: Calculate the rotation matrix
-		R = U * V_T
-		R_total *= R
+		R = U @ V_T
+		R_total = R @ R_total
 		
+		error = cal_error(pc_true, pc_est)
+		print(error)
+
 
 		# Step 5: Transform estimated point
-		pc_est = R * pc_est_norm + center_true
+		pc_est = (R @ pc_est_norm.T).T + center_true
+
 
 		# Step 6: Evaluate the errors
-		error = cal_error(p_true, pc_est)
+		error = cal_error(pc_true, pc_est)
+		print(error)
 		error_decrease = (error - last_error) < 0
-
+		print(error)
 		last_error = error
 
-	T = center_true - R_total * center_est
+	T = center_true - R_total @ center_est
 	transform = np.zeros((3, 3))
 	transform[0:2, 0:2] = R_total
 	transform[0:2, 2] = T

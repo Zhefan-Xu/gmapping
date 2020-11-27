@@ -23,7 +23,7 @@ def main():
 	width = 10
 	map_resolution = 0.05
 	gridmap = GridMap(map_resolution, length, width)
-	print(gridmap)
+
 	pixels = gridmap.size_x
 	map_visualizer = MapVisualizer(length, pixels)
 
@@ -44,7 +44,7 @@ def main():
 		particle[2] = weight
 		particles.append(particle)
 	particles = np.array(particles)
-	print(particles)
+
 
 
 
@@ -57,7 +57,7 @@ def main():
 
 
 		if (first_measurment and meas_type == "L"):		
-			print(gridmap)
+
 			meas_vals = meas_vals[:-1]
 			gridmap.l_map, gridmap.p_map = integrateScan(gridmap, initial_pose, meas_vals, max_range)
 			for i in range(num_particle):
@@ -67,7 +67,9 @@ def main():
 			first_measurment = False
 
 			meas_est = ray_casting(initial_pose, gridmap, max_range)
-			print(meas_est[1,:])
+			meas_est = meas_est[1,:]
+			# print(meas_est)
+			# return
 		
 		if (not first_measurment):
 			for particle in particles:
@@ -108,10 +110,11 @@ def main():
 
 
 					# Step 4: Perform ICP to get the tranform matrix
-					tranform = ICP(pc_true, pc_est)
+					transform = ICP(pc_true, pc_est)
 
 					# Step 5: correct pose based on trasform (If ICP succeed!!!!!)
 					pose_corrected = transform * pose
+					print(pose_corrected)
 
 
 
