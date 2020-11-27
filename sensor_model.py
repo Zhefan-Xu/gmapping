@@ -48,7 +48,7 @@ def ray_casting(pose, gridmap, max_range):
     direction_array = np.array([start_direction + i*meas_range/N for i in range(N)]).reshape((1, N)) # 0 - 359
 
     #y_temp = np.array([[direction_array], [np.inf * np.ones(1, N)]])
-    y_temp = np.concatenate((direction_array, max_range * np.ones((1, N))))
+    y_temp = np.concatenate((direction_array, float('inf') * np.ones((1, N))))
 
     # narrow down the raycasting range to a square shape whose center is current pose
     x_lb = max(0, x - max_range)
@@ -87,6 +87,7 @@ def ray_casting(pose, gridmap, max_range):
                         k = N + k
                     elif k > N - 1:
                         k = k - N
+                    # if a smaller distance is found, use the smaller one
                     if r < y_temp[1, k]:
                         y_temp[1, k] = r
 

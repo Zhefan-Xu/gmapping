@@ -83,7 +83,7 @@ def main():
 				# Sensor Measurement
 				elif meas_type == "L":
 					# Step 1: get estimated sensor measurement from estimated pose and previous map
-					meas_vals = meas_vals[:-1]
+					meas_vals = meas_vals[:-1] # the last term is time
 					meas_true = meas_vals # shape [1, 360] 
 					#meas_est = ray_casting(pose, gridmap)
 
