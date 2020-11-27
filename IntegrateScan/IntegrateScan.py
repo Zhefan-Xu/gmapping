@@ -17,9 +17,9 @@ def wraptopi(theta):
 
     return theta
 
-def find_end(pose, direction, zi):
+def find_end(pose, gridmap, direction, zi):
         
-        map_resolution = 0.1
+        map_resolution = gridmap.resolution
         res = 1
 
         step_size =  map_resolution * res
@@ -38,7 +38,7 @@ def inverse_range_sensor_model(ii, jj, gridmap, pose, z, direction_array, max_ra
     gridmap is an object of GridMap
     '''
     
-    alpha = 0.2   # thickness of obstacles
+    alpha = 0.1   # thickness of obstacles
     beta = 0.02   # width of sensor beam
 
     # center of mass of cell
@@ -67,6 +67,7 @@ def integrateScan(gridmap, pose, z, max_range):
     # z: measurements, 1 by 360
     # assume z are all numbers
     N = z.shape[0]
+    print(N)
     x = pose[0]
     y = pose[1]
     theta = pose[2]
@@ -95,7 +96,6 @@ def integrateScan(gridmap, pose, z, max_range):
     # Calculate normalized probablity form log-odds
     new_p_map = 1 - (1. / (1 + np.exp(new_l_map)))
 
-    # return np.flipud(new_l_map), np.flipud(new_p_map)
     return new_l_map, new_p_map
 
 if __name__ == "__main__":

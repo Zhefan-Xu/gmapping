@@ -1,8 +1,7 @@
 import numpy as np 
 import math
 from scipy.stats import norm 
-import sys
-from motion_model import wrapToPi
+from IntegrateScan import wraptopi
 from GridMap import GridMap
 
 
@@ -10,7 +9,7 @@ from GridMap import GridMap
 
 # scan matching
 
-def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
+def ray_casting(pose, gridmap, max_range):
 
     #produces estimates of laser measurements based on an inputted position 
 
@@ -20,9 +19,10 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
     #Questions: 
     #do we have to flip coordinates of the grid_map? 
 
-    object_detect = 0.2 #tunable parameter
+    object_detect = gridmap.p_occ #0.2 #tunable parameter
 
-    N = 360 
+    N = 360
+    beam_res = 1. * np.pi/180 
 
     x = pose[0]
     y = pose[1]
@@ -32,7 +32,7 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
     width_grid = gridmap.width
     length_grid = gridmap.length
 
-    theta = wrapToPi(theta)
+    theta = wraptopi(theta)
     meas_range = 2*np.pi
 
     #determine where the LIDAR is wrt to the center of the robot 
@@ -43,12 +43,57 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
     mapX = math.floor(posX)
     mapY = math.floor(posY)
 
-    num_proj = floor(radius/laser_res)
+    # global raycasting direction array
+    start_direction =  theta # determine if this needs to be adjusted
+    direction_array = np.array([start_direction + i*meas_range/N for i in range(N)]).reshape((1, N)) # 0 - 359
 
-    start_direction = 0 # determine if this needs to be adjusted
+    #y_temp = np.array([[direction_array], [np.inf * np.ones(1, N)]])
+    y_temp = np.concatenate((direction_array, max_range * np.ones((1, N))))
 
-    y_temp = np.array([[start_direction + i*meas_range/N for i in range(N)],[np.ones(1, num_proj)]]) # 0 - 359
+    # narrow down the raycasting range to a square shape whose center is current pose
+    x_lb = max(0, x - max_range)
+    x_ub = min(gridmap.length, x + max_range)
+    y_lb = max(0, y - max_range)
+    y_ub = min(gridmap.width, y + max_range)
+    index_x_lb = np.floor(x_lb/gridmap.resolution).astype(int)
+    index_x_ub = np.floor(x_ub/gridmap.resolution).astype(int)
+    index_y_lb = np.floor(y_lb/gridmap.resolution).astype(int)
+    index_y_ub = np.floor(y_ub/gridmap.resolution).astype(int)
 
+    for i in range(index_x_lb, index_x_ub):
+        for j in range(index_y_lb, index_y_ub):
+            # if find a cell occupied
+            if gridmap.p_map[i, j] >= gridmap.p_occ:
+                # center of mass of cell
+                xc = (i + 0.5) * gridmap.resolution
+                yc = (j + 0.5) * gridmap.resolution
+
+                # angle from cell to robot in global frame
+                theta_scan_global = np.arctan2(yc - y, xc - x)
+                # angle from cell to robot in robot frame
+                #theta_scan_robot = theta_scan_global - theta
+
+                # calculate distance
+                r = np.sqrt((yc - y)**2 + (xc - x)**2)
+
+                # find idx of beam closest to cell
+                idx = np.argmin(np.absolute(wraptopi(theta_scan_global - direction_array)))
+
+                # calculate how many scans go through same cell
+                rng = np.floor(np.arctan(0.5*gridmap.resolution/r) / beam_res)
+
+                for k in range(int(idx - rng), int(idx + rng + 1)):
+                    if k < 0:
+                        k = N + k
+                    elif k > N - 1:
+                        k = k - N
+                    if r < y_temp[1, k]:
+                        y_temp[1, k] = r
+
+    y_est = y_temp
+    return y_est
+
+    '''
     deg_step = 1
 
     for k in range(0,360,deg_step):
@@ -105,7 +150,7 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
                 side = 1
                 # print("in y dir delta ",deltaDistY," sideDistY ",sideDistY," mapx ",mapX," mapy ",mapY)
 
-            if (gridmap[mapY][mapX] > object_detect or gridmap[mapY][mapX] == -1):
+            if (gridmap[mapY][mapX] >= object_detect or gridmap[mapY][mapX] == -1):
                 # print("hit wall at x ",mapX, " y ",mapY)
                 hitWall = 1
         
@@ -117,14 +162,12 @@ def ray_casting(pose, gridmap, laser_res, max_range, grid_map, grid_area):
         y_temp[1,k] = perpWallDist
 
     y_est = y_temp
-
-    return y_est
-
-        #accessing grid map 
+    '''
+     
 
 
 
-def calculate_P(y_laser, y_pred, sigma):
+def calculate_P (y_laser, y_pred, sigma):
 
     # y_laser: 2D array of laser measurement results
     # y_pred:  2D array of laser predicted measurment results based on position
