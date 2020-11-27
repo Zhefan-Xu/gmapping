@@ -8,6 +8,12 @@ from GridMap import GridMap
 # initial pose estimate 
 
 # scan matching
+'''
+input: robot pose, gridmap object, laser max_range
+output: 2x360 array
+        first row --- 360 rads of beam direction
+        second row --- corresponding measurements
+'''
 
 def ray_casting(pose, gridmap, max_range):
 
