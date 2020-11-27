@@ -67,7 +67,6 @@ def integrateScan(gridmap, pose, z, max_range):
     # z: measurements, 1 by 360
     # assume z are all numbers
     N = z.shape[0]
-    print(N)
     x = pose[0]
     y = pose[1]
     theta = pose[2]

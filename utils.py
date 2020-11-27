@@ -13,4 +13,13 @@ def meas_to_pointcloud(meas, pose):
 	return pointcloud
 
 
-	
+if __name__ == "__main__":
+	# test SVD
+	W = np.array([[1, 2],[3, 4]])
+	WT = W.T
+	U1, _, VT1 = np.linalg.svd(W)
+	U2, _, VT2 = np.linalg.svd(WT)
+	print(U1.dot(VT1))
+	print(VT2.T.dot(U2.T))
+	print(U1,'\n', VT1)
+	print(U2,'\n', VT2)

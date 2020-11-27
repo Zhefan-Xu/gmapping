@@ -25,7 +25,7 @@ def main():
 	gridmap = GridMap(map_resolution, length, width)
 
 	pixels = gridmap.size_x
-	# map_visualizer = MapVisualizer(length, pixels)
+	map_visualizer = MapVisualizer(length, pixels)
 
 	# First Measurment:
 	first_measurment = True
@@ -62,12 +62,13 @@ def main():
 			gridmap.l_map, gridmap.p_map = integrateScan(gridmap, initial_pose, meas_vals, max_range)
 			for i in range(num_particle):
 				particles[i][1] = copy.deepcopy(gridmap)
-			# map_visualizer.visualize(initial_pose, gridmap.p_map)
+			map_visualizer.visualize(initial_pose, gridmap.p_map)
 			# plt.show(block=True)
 			first_measurment = False
 
-			# meas_est = ray_casting(initial_pose, gridmap, max_range)
-			# meas_est = meas_est[1,:]
+			'''just for testing raycasting'''
+			#meas_est = ray_casting(initial_pose, gridmap, max_range)
+			#meas_est = meas_est[1,:]
 			# print(meas_est)
 			# return
 		
@@ -84,6 +85,8 @@ def main():
 					
 				# Sensor Measurement
 				elif meas_type == "L":
+					
+					'''scan matching using ICP'''
 					# Step 1: get estimated sensor measurement from estimated pose and previous map
 					meas_vals = meas_vals[:-1] # the last term is time
 					meas_true = meas_vals # shape [1, 360] 
@@ -112,8 +115,6 @@ def main():
 					pc_true = meas_to_pointcloud(meas_true_usable, pose)
 					pc_est = meas_to_pointcloud(meas_est_usable, pose)
 
-					# print(pc_true[:5], pc_est[:5])
-					# return 
 
 					# Step 4: Perform ICP to get the tranform matrix
 					transform = ICP(pc_true, pc_est)
@@ -121,6 +122,12 @@ def main():
 					# Step 5: correct pose based on trasform (If ICP succeed!!!!!)
 					pose_corrected = transform * pose
 					print(pose_corrected)
+
+					if ICP_failure:
+						
+					else:
+						# sample around the fixed pose
+						poses_k = sample_around(pose_corrected, delta, K)
 
 
 
