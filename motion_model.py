@@ -60,22 +60,24 @@ def motion_model_odometry(xt,ut,xt_1,a):
     return p1*p2*p3
 
 
-def sample_motion_model(ut,xt_1,a):
+def sample_motion_model(pose, odom, a=[1e-4, 0.01, 0.01, 1e-4]):
     # xt_1: x at time t-1: (x1, y1, theta1)
     # ut: (uxt_1, uxt), with uxt_1=(ux1,uy1,utheta1), uxt_2=(ux2,uy2,utheta2)
     # a: alphas: (a1, a2, a3, a4)
 
-    x1,y1,theta1=xt_1
+    [x1,y1,theta1]=pose
 
-    uxt_1,uxt=ut
-    ux1,uy1,utheta1=uxt_1
-    ux2,uy2,utheta2=uxt
+    [odom_x, odom_y, odom_theta] = odom
+
+    # uxt_1,uxt=ut
+    # ux1,uy1,utheta1=uxt_1
+    # ux2,uy2,utheta2=uxt
 
     a1,a2,a3,a4=a
 
-    rot1=wrapToPi(math.atan2((uy2-uy1),(ux2-ux1))-utheta1)
-    trans=np.sqrt((ux1-ux2)**2 + (uy1-uy2)**2)
-    rot2=wrapToPi(utheta2-utheta1-rot1)
+    rot1=wrapToPi(math.atan2((odom_y),(odom_x))-odom_theta)
+    trans=np.sqrt((odom_x)**2 + (odom_y)**2)
+    rot2=wrapToPi(odom_theta-rot1)
 
     rot1_hat = rot1- sample(a1 * np.square(rot1) + a2 * np.square(trans))
     trans_hat = trans-sample(a3 * np.square(trans) + a4 * (np.square(rot1) + np.square(rot2)))
