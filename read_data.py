@@ -51,49 +51,49 @@ def main():
 	for time_idx, line in enumerate(logfile):
 		meas_type = line[0]
 		meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ')
-		if (time_idx == 0):
-			u_t0 = np.fromstring(line[2:], dtype=np.float64, sep=' ')
-			
 
 
-		if (first_measurment and meas_type == "L"):		
+		if (meas_type == "O"):
+			meas_odom = meas_vals[:-1]
 
-			meas_vals = meas_vals[:-1]
-			gridmap.l_map, gridmap.p_map = integrateScan(gridmap, initial_pose, meas_vals, max_range)
-			for i in range(num_particle):
-				particles[i][1] = copy.deepcopy(gridmap)
-			map_visualizer.visualize(initial_pose, gridmap.p_map)
-			# plt.show(block=True)
-			first_measurment = False
 
-			'''just for testing raycasting'''
-			#meas_est = ray_casting(initial_pose, gridmap, max_range)
-			#meas_est = meas_est[1,:]
-			# print(meas_est)
-			# return
-		
-		if (not first_measurment):
-			for particle in particles:
-				[pose, gridmap, weight] = particle
 
-				# Odometry Measurement
-				if meas_type == "O":
-					u_t1 = meas_vals
-					odom = u_t1[0:3] - u_t0[0:3]
-					pose_motion_model = motion_model(pose, odom) # Add noise?
-					particle[0] = pose_motion_model
+		# Only perform computation when new scan receives
+		if (meas_type == "L"):
+			# First time: Initialze map for each particle
+			if (first_measurment):
+				meas_scan = meas_vals[:-1] # Last measurement is time
+				gridmap.l_map, gridmap.p_map = integrateScan(gridmap, initial_pose, meas_scan, max_range)
+				for i in range(num_particle):
+					particles[i][1] = copy.deepcopy(gridmap)
+				map_visualizer.visualize(initial_pose, gridmap.p_map)
+				u_t0 = meas_odom
+				first_measurment = False
+
+			else:
+				# Get the lastest odometry measurement
+				u_t1 = meas_odom
+				odom = u_t1 - u_t0
+				meas_scan = meas_vals[:-1]
+				# Iterate through every particle:
+				for p_idx, particle in enumerate(particles):
+					[pose, gridmap, weight] = particle
+
+					# Step 1: Scan Matching:
+					## Update Odometry
+					pose_motion_model = motion_model(pose, odom)
+					## ICP Scan Matcher
+					"""
+					1. Estimate measurment from previous map with new pose
+					2. Find usable measurment from both true measurment and estimate measuremnt
+					3. Perform ICP to find tranformation matrix
+					"""
+
+					# SM1: Find estiamted measurement
+					meas_true = meas_scan
+					meas_est = ray_casting(pose, gridmap, max_range)[1,:] # Estimate Meas
 					
-				# Sensor Measurement
-				elif meas_type == "L":
-					
-					'''scan matching using ICP'''
-					# Step 1: get estimated sensor measurement from estimated pose and previous map
-					meas_vals = meas_vals[:-1] # the last term is time
-					meas_true = meas_vals # shape [1, 360] 
-					meas_est = ray_casting(pose, gridmap, max_range)
-					meas_est = meas_est[1,:]
-
-					# Step 2: Find the useable laser beams: range < max_range for both estimate and true
+					# SM2: Find the useable laser beams: range < max_range for both estimate and true
 					meas_true_usable = [] 
 					meas_est_usable = []
 					for idx in range(len(meas_true)):
@@ -108,39 +108,68 @@ def main():
 					meas_true_usable = np.array(meas_true_usable)
 					meas_est_usable = np.array(meas_est_usable)
 
-					# print(meas_true_usable[:5], meas_est_usable[:5])
-					# return
+					# SM3: convert measurement to pointcloud in world frame
+					pc_true = meas_to_pointcloud(meas_true_usable, pose_motion_model)
+					pc_est = meas_to_pointcloud(meas_est_usable, pose_motion_model)
 
-					# Step 3: convert measurement to pointcloud in world frame
-					pc_true = meas_to_pointcloud(meas_true_usable, pose)
-					pc_est = meas_to_pointcloud(meas_est_usable, pose)
-
-
-					# Step 4: Perform ICP to get the tranform matrix
+					# SM4: Perform ICP to get the tranform matrix
 					transform, ICP_failure = ICP(pc_true, pc_est)
 
-					if ICP_failure:
-						pass
+					# Update pose based on scan matching results:
+					if (ICP_failure):
+						# TODO 1: Sample new pose from Gaussian Motion Model using previous pose and current odom
+						# Old pose is variable "pose", current odom is variable "odom"
+
+						# TODO 2: Update particle weights based on Gaussin pdf w = w * p
+
+
 					else:
-						# Step 5: correct pose based on trasform (If ICP succeed!!!!!)
-						R = transform[0:2, 0:2]
-						T = transform[0:2, 2]
-						rotation_angle = np.arcsin(R[1,0])
-
-						corrected_x, corrected_y = R @ pose[0:2] + T
-						corrected_theta = wrapToPi(rotation_angle + pose[2])
-
-						pose_corrected = np.array([corrected_x, corrected_y, corrected_theta])
-						print(pose)
-						print(pose_corrected)
-						# sample around the fixed pose
-						poses_k = sample_around(pose_corrected, delta, K, sigma_x, sigma_y, sigma_theta)
+						# TODO 1: Sample k new pose around mode within delta range: 
+						# For 1: K: 
+							# Sample new pose
 
 
 
-			u_t0 = u_t1
+						# TODO 2: Compute Gaussian Mean and Vector for new pose:
+						# =======MEAN==========
+						## 1. Initialize mean and Normalize Factor (NF)  to zeros
+
+						## 2. Iterate through K sample poses:
+						# For 1: K: 
+							# Update mean and NF based on sensor model and motion mode
+
+						# Normalize mean: mean /= NF
+
+						# =====================
+
+						# =======Variance======
+						## 1. Iterate throgh K sample poses: 
+						#  For 1: K:
+							# Update Variance
+
+						# Normalize variance: variance /= NF
+
+						# =====================
 
 
+
+						# TODO 3: Draw sample from the derived Gaussian Distribution
+
+
+						# TODO 4: Update importance weights
+						## w = w * NF
+
+					# TODO: Update map with new pose and current measurment
+					## m = integrateScan(...)
+
+					# TODO: Update Sample Set
+
+				# TODO: Resampling
+
+
+				# Update u_t0
+				u_t0 = u_t1
+				
 
 
 
