@@ -15,7 +15,7 @@ def meas_to_pointcloud(meas, pose):
 	return pointcloud
 
 
-def sample_around(pose, delta, K, sigma_x, sigma_y, sigma_theta):
+def sample_around(pose, delta=[0.02, 0.02, 1e-3], K=10, sigma_x=0.05, sigma_y=0.05, sigma_theta=5e-4):
 	'''
 	pose: 3 by 1
 	delta: 3 by 1
@@ -41,9 +41,7 @@ def sample_around(pose, delta, K, sigma_x, sigma_y, sigma_theta):
 			dtheta = sigma_theta * np.random.randn()
 			exit = abs(dtheta) < delta[2]
 		theta_temp = theta + dtheta
-
 		pose_samples[:, i] = np.array([x_temp, y_temp, theta_temp]).T
-
 	return pose_samples
 
 def compute_gaussian(pose_samples, gridmap, pose, meas_true):
@@ -57,6 +55,8 @@ def compute_gaussian(pose_samples, gridmap, pose, meas_true):
 
 	need to use sensor model and motion model in this function
 	'''
+
+	
 
 	return mu, cov
 

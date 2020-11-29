@@ -91,7 +91,7 @@ def main():
 
 					# SM1: Find estiamted measurement
 					meas_true = meas_scan
-					meas_est = ray_casting(pose, gridmap, max_range)[1,:] # Estimate Meas
+					meas_est = ray_casting(pose_motion_model, gridmap, max_range)[1,:] # Estimate Meas
 					
 					# SM2: Find the useable laser beams: range < max_range for both estimate and true
 					meas_true_usable = [] 
@@ -116,9 +116,17 @@ def main():
 					transform, ICP_failure = ICP(pc_true, pc_est)
 
 					# Update pose based on scan matching results:
+					R = transform[0:2,0:2]
+					T = transform[0:2, 2]
+					rotation_angle = np.arcsin(R[1,0])
+					corrected_position = R @ pose_motion_model[0:2] + T 
+					corrected_theta = wrapToPi(rotation_angle + pose[2])
+					corrected_pose = np.array([corrected_position[0], corrected_position[1], corrected_theta])
+
 					if (ICP_failure):
 						# TODO 1: Sample new pose from Gaussian Motion Model using previous pose and current odom
 						# Old pose is variable "pose", current odom is variable "odom"
+						new_pose = sample_motion_model(pose, odom)
 
 						# TODO 2: Update particle weights based on Gaussin pdf w = w * p
 
@@ -127,7 +135,7 @@ def main():
 						# TODO 1: Sample k new pose around mode within delta range: 
 						# For 1: K: 
 							# Sample new pose
-
+						pose_samples = sample_around(corrected_pose)
 
 
 						# TODO 2: Compute Gaussian Mean and Vector for new pose:
@@ -150,23 +158,38 @@ def main():
 						# Normalize variance: variance /= NF
 
 						# =====================
-
+						mu, cov, nf = compute_gaussian(pose_samples, gridmap, pose, meas_true)
 
 
 						# TODO 3: Draw sample from the derived Gaussian Distribution
+						new_pose = np.random.normal(mu, cov)
 
 
 						# TODO 4: Update importance weights
 						## w = w * NF
+						new_weight = weight * nf
 
 					# TODO: Update map with new pose and current measurment
 					## m = integrateScan(...)
+					gridmap.l_map, gridmap.p_map = integrateScan(gridmap, new_pose, meas_scan, max_range) 
 
 					# TODO: Update Sample Set
+					particles[p_idx][0] = new_pose
+					particles[p_idx][1] = gridmap
+					particles[p_idx][2] = new_weight
 
 				# TODO: Resampling
+				sqr_sum_weight = np.sum(particles[:, 2]**2)
+				N_eff = 1/sqr_sum_weight
 
-
+				threshold = 0.1 # not sure
+				weights_arr = particles[:, 2]
+				if (N_eff < threshold):
+					new_particles = []
+					indices = np.random.choice(num_particle, num_particle, p=weights_arr)
+					for idx in indices:
+						new_particles.append(particles[idx])
+					particles = new_particles
 				# Update u_t0
 				u_t0 = u_t1
 				
