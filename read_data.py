@@ -117,7 +117,7 @@ def main():
 
 
 					# Step 4: Perform ICP to get the tranform matrix
-					transform = ICP(pc_true, pc_est)
+					transform, ICP_failure = ICP(pc_true, pc_est)
 
 					if ICP_failure:
 						pass
