@@ -57,7 +57,8 @@ def motion_model_odometry(xt,ut,xt_1,a):
     p1=prob_normal_distribution(rot1-rot1_h,a1*np.square(rot1_h)+a2*np.square(trans_h))
     p2=prob_normal_distribution(trans-trans_h,a3*np.square(trans_h)+a4*(np.square(rot1_h)+np.square(rot2_h)))
     p3=prob_normal_distribution(rot2-rot2_h,a1*np.square(rot2_h)+a2*np.square(trans_h))
-    return p1*p2*p3
+
+    return np.log(p1) + np.log(p2) + np.log(p3)
 
 
 def sample_motion_model(pose, odom, a=[1e-4, 0.01, 0.01, 1e-4]):
