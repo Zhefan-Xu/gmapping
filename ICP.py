@@ -146,7 +146,7 @@ def ICP(pc_true, pc_est):
 	# plt.show()
 
 
-	return transform
+	return transform, ICP_failure
 
 
 	# # print(pc_true[:10], pc_est[:10])
