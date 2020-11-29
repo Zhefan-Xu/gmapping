@@ -179,17 +179,18 @@ def calculate_P (y_laser, y_pred, sigma):
     # y_laser: 2D array of laser measurement results
     # y_pred:  2D array of laser predicted measurment results based on position
     # sigma: standard deviation 
+    # return: log
 
-    q = 1
+    q = 0
 
     for i in range(y_laser.shape[1]):
         
-        p_x = math.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
-        p_y = math.exp((-(y_laser[1,i] -y_pred[1,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
+        #p_x = math.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
+        #p_y = math.exp((-(y_laser[1,i] -y_pred[1,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
 
-        p = p_x*p_y
+        p = math.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
 
-        q = q*p
+        q = q + np.log(p)
         
     return q
 
