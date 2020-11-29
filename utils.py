@@ -36,7 +36,7 @@ def sample_around(pose, delta, K, sigma_x, sigma_y, sigma_theta):
 		y_temp = y + dy
 		exit = False
 		while not exit:
-			dtheta = sigma_th * np.random.randn()
+			dtheta = sigma_theta * np.random.randn()
 			exit = abs(dtheta) < delta[2]
 		theta_temp = theta + dtheta
 
