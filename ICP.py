@@ -51,6 +51,8 @@ def ICP(pc_true, pc_est):
 	pc_est: Estimated measuremetn in global frame. Shape: [360, 2]
 	"""
 
+	ICP_failure = False
+
 	# TEST PURPOSE
 	angle = 30 * np.pi/180
 	R_test = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
@@ -133,7 +135,10 @@ def ICP(pc_true, pc_est):
 	transform = np.zeros((3, 3))
 	transform[0:2, 0:2] = R_total
 	transform[0:2, 2] = T_total
-	transform[2,2] = 1 
+	transform[2,2] = 1
+
+	if np.linalg.norm(T_total) > 0.1:
+		ICP_failure = True 
 
 	# plt.scatter(pc_true[:, 0], pc_true[:, 1], label="true")
 	# plt.scatter(pc_est[:,0], pc_est[:, 1], label="ests")
