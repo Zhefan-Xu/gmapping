@@ -25,7 +25,7 @@ def main():
 	gridmap = GridMap(map_resolution, length, width)
 
 	pixels = gridmap.size_x
-	#map_visualizer = MapVisualizer(length, pixels)
+	map_visualizer = MapVisualizer(length, pixels)
 
 	# First Measurment:
 	first_measurment = True
@@ -123,7 +123,15 @@ def main():
 						pass
 					else:
 						# Step 5: correct pose based on trasform (If ICP succeed!!!!!)
-						pose_corrected = transform * pose
+						R = transform[0:2, 0:2]
+						T = transform[0:2, 2]
+						rotation_angle = np.arcsin(R[1,0])
+
+						corrected_x, corrected_y = R @ pose[0:2] + T
+						corrected_theta = wrapToPi(rotation_angle + pose[2])
+
+						pose_corrected = np.array([corrected_x, corrected_y, corrected_theta])
+						print(pose)
 						print(pose_corrected)
 						# sample around the fixed pose
 						poses_k = sample_around(pose_corrected, delta, K, sigma_x, sigma_y, sigma_theta)

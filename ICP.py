@@ -54,11 +54,11 @@ def ICP(pc_true, pc_est):
 	ICP_failure = False
 
 	# TEST PURPOSE
-	angle = 30 * np.pi/180
-	R_test = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-	center_est = np.mean(pc_est, axis=0)
-	pc_est_norm = pc_est - center_est
-	pc_est = (R_test @ pc_est_norm.T).T + center_est
+	# angle = 30 * np.pi/180
+	# R_test = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+	# center_est = np.mean(pc_est, axis=0)
+	# pc_est_norm = pc_est - center_est
+	# pc_est = (R_test @ pc_est_norm.T).T + center_est
 
 	error = 100000
 	error_decrease = True
@@ -136,6 +136,8 @@ def ICP(pc_true, pc_est):
 	transform[0:2, 0:2] = R_total
 	transform[0:2, 2] = T_total
 	transform[2,2] = 1
+
+	print(np.linalg.norm(T_total))
 
 	if np.linalg.norm(T_total) > 0.1:
 		ICP_failure = True 
