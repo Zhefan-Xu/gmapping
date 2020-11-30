@@ -174,7 +174,7 @@ def ray_casting(pose, gridmap, max_range):
 
 
 
-def calculate_P (y_laser, y_pred, sigma):
+def calculate_P (y_laser, y_pred, sigma=0.05):
 
     # y_laser: 2D array of laser measurement results
     # y_pred:  2D array of laser predicted measurment results based on position

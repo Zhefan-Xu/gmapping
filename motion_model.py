@@ -31,7 +31,7 @@ def sample(var):
     return np.random.normal(loc=0.0, scale=var)
 
 
-def motion_model_odometry(xt,ut,xt_1,a):
+def motion_model_odometry(xt,ut,xt_1,a=[1e-4, 0.01, 0.01, 1e-4]):
     # xt_1: x at time t-1: (x1, y1, theta1)
     # xt: x at time t: (x2, y2, theta2)
     # ut: (uxt_1, uxt), with uxt_1=(ux1,uy1,utheta1), uxt_2=(ux2,uy2,utheta2)

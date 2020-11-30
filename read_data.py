@@ -46,8 +46,6 @@ def main():
 	particles = np.array(particles)
 
 
-
-
 	for time_idx, line in enumerate(logfile):
 		meas_type = line[0]
 		meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ')
@@ -139,26 +137,7 @@ def main():
 
 
 						# TODO 2: Compute Gaussian Mean and Vector for new pose:
-						# =======MEAN==========
-						## 1. Initialize mean and Normalize Factor (NF)  to zeros
-
-						## 2. Iterate through K sample poses:
-						# For 1: K: 
-							# Update mean and NF based on sensor model and motion mode
-
-						# Normalize mean: mean /= NF
-
-						# =====================
-
-						# =======Variance======
-						## 1. Iterate throgh K sample poses: 
-						#  For 1: K:
-							# Update Variance
-
-						# Normalize variance: variance /= NF
-
-						# =====================
-						mu, cov, nf = compute_gaussian(pose_samples, gridmap, pose, meas_true)
+						mu, cov, nf = compute_gaussian(pose_samples, gridmap, pose, meas_true, max_range, odom)
 
 
 						# TODO 3: Draw sample from the derived Gaussian Distribution
@@ -178,11 +157,16 @@ def main():
 					particles[p_idx][1] = gridmap
 					particles[p_idx][2] = new_weight
 
+				# Normalize 
+				particles[:, 2] /= np.sum(particles[:, 2])
+
 				# TODO: Resampling
 				sqr_sum_weight = np.sum(particles[:, 2]**2)
 				N_eff = 1/sqr_sum_weight
 
-				threshold = 0.1 # not sure
+
+				resample_pecentage = 0.5
+				threshold = resample_pecentage * num_particle # not sure
 				weights_arr = particles[:, 2]
 				if (N_eff < threshold):
 					new_particles = []

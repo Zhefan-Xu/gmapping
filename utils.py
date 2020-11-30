@@ -45,7 +45,7 @@ def sample_around(pose, delta=[0.02, 0.02, 1e-3], K=10, sigma_x=0.05, sigma_y=0.
 		pose_samples[:, i] = np.array([x_temp, y_temp, theta_temp]).T
 	return pose_samples
 
-def compute_gaussian(pose_samples, gridmap, pose, meas_true, max_range, odom, a, sig_s):
+def compute_gaussian(pose_samples, gridmap, pose, meas_true, max_range, odom):
 	'''
 	pose_samples: samples array of current particle
 	gridmap: gridmap object of current particle
@@ -72,12 +72,12 @@ def compute_gaussian(pose_samples, gridmap, pose, meas_true, max_range, odom, a,
 		sample_i = pose_samples[:, i]
 
 		# log probability from motion mmodel
-		log_prob_MM = motion_model_odometry(sample_i, odom, pose, a)
+		log_prob_MM = motion_model_odometry(sample_i, odom, pose)
 
 		# ray casting based on sample_i
 		meas_est = ray_casting(sample_i, gridmap, max_range)[1, :]
 		# log probability from sensor model
-		log_prob_SM = calculate_P(meas_true, meas_est, sig_s)
+		log_prob_SM = calculate_P(meas_true, meas_est)
 
 		# probability 
 		prob[i, :] = np.exp((log_prob_MM + log_prob_SM) - logsumexp(log_prob_MM + log_prob_SM))
