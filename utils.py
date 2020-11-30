@@ -1,6 +1,7 @@
 import numpy as np
 from sensor_model import *
 from motion_model import *
+from scipy.special import logsumexp
 
 def meas_to_pointcloud(meas, pose):
 	[x, y, theta] = pose
