@@ -61,11 +61,14 @@ def inverse_range_sensor_model(ii, jj, gridmap, pose, z, direction_array, max_ra
         return gridmap.l_occ
     elif r <= z[k]:   # if it is free
         return gridmap.l_free
+    else:
+        return gridmap.l0
 
 
 def integrateScan(gridmap, pose, z, max_range):
     # z: measurements, 1 by 360
     # assume z are all numbers
+    # print(pose)
     N = z.shape[0]
     x = pose[0]
     y = pose[1]
@@ -79,6 +82,7 @@ def integrateScan(gridmap, pose, z, max_range):
     direction_array = np.array([start_direction + i*meas_range/N for i in range(N)]) # 0 - 359
 
     # narrow down the update range to a square shape whose center is current pose
+    # print(x)
     x_lb = max(0, x - max_range)
     x_ub = min(gridmap.length, x + max_range)
     y_lb = max(0, y - max_range)
@@ -90,6 +94,8 @@ def integrateScan(gridmap, pose, z, max_range):
 
     for i in range(index_x_lb, index_x_ub):
         for j in range(index_y_lb, index_y_ub):
+            # print(gridmap.l_map[i,j])
+            # print(inverse_range_sensor_model(i, j, gridmap, pose, z, direction_array, max_range))
             new_l_map[i,j] = gridmap.l_map[i,j] + inverse_range_sensor_model(i, j, gridmap, pose, z, direction_array, max_range) - gridmap.l0
     
     # Calculate normalized probablity form log-odds

@@ -71,13 +71,13 @@ def ICP(pc_true, pc_est):
 	kdtree = KDTree(pc_true)
 
 	iteration = 0
-	while (iteration < max_iteration or error < error_thresh):
+	while (iteration < max_iteration and error > error_thresh):
 		iteration += 1
 		# plt.scatter(pc_true[:, 0], pc_true[:, 1], label="true")
 		# plt.scatter(pc_est[:,0], pc_est[:, 1], label="ests")
 		# plt.legend()
 		# plt.show()
-
+		# print(iteration)
 
 		distance, indices = kdtree.query(pc_est)
 		error = np.mean(distance**2)
@@ -98,7 +98,10 @@ def ICP(pc_true, pc_est):
 
 		# Cross Covaraince Matrix
 		W = pc_true_norm.T @ pc_est_norm
+		# print(W)
+
 		U, D, V_T = np.linalg.svd(W)
+
 
 		# Update Estimate:
 
@@ -137,9 +140,9 @@ def ICP(pc_true, pc_est):
 	transform[0:2, 2] = T_total
 	transform[2,2] = 1
 
-	print(np.linalg.norm(T_total))
+	# print(np.linalg.norm(T_total))
 
-	if np.linalg.norm(T_total) > 0.1:
+	if np.linalg.norm(T_total) > 0.001:
 		ICP_failure = True 
 
 	# plt.scatter(pc_true[:, 0], pc_true[:, 1], label="true")

@@ -11,6 +11,8 @@ from utils import *
 from ICP import ICP
 import copy
 
+from tqdm import tqdm
+
 max_range = 3.5 # INF
 
 def main():
@@ -21,7 +23,7 @@ def main():
 	# Initialize Map and Visualizer
 	length = 10
 	width = 10
-	map_resolution = 0.05
+	map_resolution = 0.1
 	gridmap = GridMap(map_resolution, length, width)
 
 	pixels = gridmap.size_x
@@ -45,8 +47,9 @@ def main():
 		particles.append(particle)
 	particles = np.array(particles)
 
-
+	count_meas = 0
 	for time_idx, line in enumerate(logfile):
+		print(time_idx)
 		meas_type = line[0]
 		meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ')
 
@@ -68,15 +71,31 @@ def main():
 				u_t0 = meas_odom
 				first_measurment = False
 
+				print("Initialze")
+				print(particles)
+
 			else:
+				count_meas += 1
+				print("Laser ID", count_meas)
+				print(particles)
+
 				# Get the lastest odometry measurement
 				u_t1 = meas_odom
 				odom = u_t1 - u_t0
 				meas_scan = meas_vals[:-1]
+
+				# Plot particle with the largest weights:
+				particles_weights = particles[:, 2]
+				max_weight_idx = np.argmax(particles_weights)
+				max_particle_pose = particles[max_weight_idx, 0]
+				max_particle_map = particles[max_weight_idx, 1]
+				map_visualizer.visualize(max_particle_pose, max_particle_map.p_map)
+
 				# Iterate through every particle:
 				for p_idx, particle in enumerate(particles):
 					[pose, gridmap, weight] = particle
-
+					
+					# map_visualizer.visualize(initial_pose, gridmap.p_map)
 					# Step 1: Scan Matching:
 					## Update Odometry
 					pose_motion_model = motion_model(pose, odom)
@@ -125,11 +144,25 @@ def main():
 						# TODO 1: Sample new pose from Gaussian Motion Model using previous pose and current odom
 						# Old pose is variable "pose", current odom is variable "odom"
 						new_pose = sample_motion_model(pose, odom)
+						# print(new_pose)
+
+						meas_est = ray_casting(new_pose, gridmap, max_range)[1, :]
+						# print(meas_est.shape)
+						# print(meas_true.shape)
+						# log probability from sensor model
+						log_prob_SM = calculate_P(meas_true.reshape(1, -1), meas_est.reshape(1, -1))
 
 						# TODO 2: Update particle weights based on Gaussin pdf w = w * p
+						
+						p = np.exp(log_prob_SM)
+						# p_ = np.exp(log_prob_SM - logsumexp(log_prob_SM))
+						# print(p)
+						# print(p_)
+						new_weight = particles[p_idx][2] * p
 
 
 					else:
+						print("ICP")
 						# TODO 1: Sample k new pose around mode within delta range: 
 						# For 1: K: 
 							# Sample new pose
@@ -138,10 +171,12 @@ def main():
 
 						# TODO 2: Compute Gaussian Mean and Vector for new pose:
 						mu, cov, nf = compute_gaussian(pose_samples, gridmap, pose, meas_true, max_range, odom)
-
+						# print(mu)
+						# print(cov)
 
 						# TODO 3: Draw sample from the derived Gaussian Distribution
-						new_pose = np.random.normal(mu, cov)
+						new_pose = np.random.multivariate_normal(mu, cov)
+						# print(new_pose)
 
 
 						# TODO 4: Update importance weights
@@ -157,6 +192,9 @@ def main():
 					particles[p_idx][1] = gridmap
 					particles[p_idx][2] = new_weight
 
+					# print("Update Samples")
+					# print(particles)
+
 				# Normalize 
 				particles[:, 2] /= np.sum(particles[:, 2])
 
@@ -170,10 +208,18 @@ def main():
 				weights_arr = particles[:, 2]
 				if (N_eff < threshold):
 					new_particles = []
-					indices = np.random.choice(num_particle, num_particle, p=weights_arr)
+					# print(weights_arr)
+					weights_arr_ = []
+					for w in weights_arr:
+						weights_arr_.append(w)
+					indices = np.random.choice(num_particle, num_particle, p=weights_arr_)
 					for idx in indices:
+						# print("index")
+						# print(particles[idx])
 						new_particles.append(particles[idx])
-					particles = new_particles
+
+					particles = np.array(new_particles)
+					particles[:, 2] /= np.sum(particles[:, 2])
 				# Update u_t0
 				u_t0 = u_t1
 				
@@ -182,3 +228,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+	plt.show()

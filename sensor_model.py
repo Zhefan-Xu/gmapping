@@ -4,6 +4,8 @@ from scipy.stats import norm
 from IntegrateScan import wraptopi
 from GridMap import GridMap
 
+from scipy.stats import norm
+
 
 # initial pose estimate 
 
@@ -174,7 +176,7 @@ def ray_casting(pose, gridmap, max_range):
 
 
 
-def calculate_P (y_laser, y_pred, sigma=0.05):
+def calculate_P(y_laser, y_pred, sigma=0.5):
 
     # y_laser: 2D array of laser measurement results
     # y_pred:  2D array of laser predicted measurment results based on position
@@ -182,16 +184,24 @@ def calculate_P (y_laser, y_pred, sigma=0.05):
     # return: log
 
     q = 0
+    max_range = 3.5
 
     for i in range(y_laser.shape[1]):
         
         #p_x = math.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
         #p_y = math.exp((-(y_laser[1,i] -y_pred[1,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
 
-        p = math.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
+        if (y_laser[0, i] > max_range or y_pred[0, i] > max_range):
+            continue
+        # print(y_laser[0, i], y_pred[0, i])
 
+        p = np.exp((-(y_laser[0,i] -y_pred[0,i])**2)/(2*sigma**2)) /np.sqrt(2*np.pi*sigma**2)
+        # if (p < 1e-100):
+        #     print(y_laser[0, i], y_pred[0, i])
+        #     continue
+        # print(p)
         q = q + np.log(p)
-        
+    # print(q)
     return q
 
 

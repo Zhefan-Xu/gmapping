@@ -46,7 +46,7 @@ class MapVisualizer:
         if self.img is None:
             self.img = self.ax.imshow(map_matrix.T, cmap='Greys')
         else:
-            self.img.set_data(map_matrix)
+            self.img.set_data(map_matrix.T)
         plt.pause(0.0001)
         plt.draw()
 
