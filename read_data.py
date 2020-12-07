@@ -17,13 +17,16 @@ max_range = 3.5 # INF
 
 def main():
 	src_path_log = "./turtlebot_log.txt"
+	# src_path_log = "./turtlebot_log_house.txt"
 	logfile = open(src_path_log, 'r')
 	print("=================GMAPPING==================")
 
 	# Initialize Map and Visualizer
 	length = 10
 	width = 10
-	map_resolution = 0.1
+	# length = 25
+	# width = 25
+	map_resolution = 0.05
 	gridmap = GridMap(map_resolution, length, width)
 
 	pixels = gridmap.size_x
@@ -35,7 +38,10 @@ def main():
 	num_particle = 3
 
 	initial_pose = np.array([4, 6, 0]) # Initialization for pose
+	# initial_pose = np.array([10,12, 0]) # Initialization for pose
 	#X = np.array([0, 0, 0]) # Initialization for pose
+
+
 
 	# initialzie particle
 	particles = []
@@ -82,6 +88,8 @@ def main():
 				# Get the lastest odometry measurement
 				u_t1 = meas_odom
 				odom = u_t1 - u_t0
+
+
 				meas_scan = meas_vals[:-1]
 
 				# Plot particle with the largest weights:
@@ -131,6 +139,8 @@ def main():
 
 					# SM4: Perform ICP to get the tranform matrix
 					transform, ICP_failure = ICP(pc_true, pc_est)
+
+					# return
 
 					# Update pose based on scan matching results:
 					R = transform[0:2,0:2]
