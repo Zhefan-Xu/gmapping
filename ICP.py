@@ -73,12 +73,12 @@ def ICP(pc_true, pc_est):
 	iteration = 0
 	while (iteration < max_iteration and error > error_thresh):
 		iteration += 1
-		plt.figure(figsize=(7,7))
-		plt.scatter(pc_true[:, 0], pc_true[:, 1], label="true")
-		plt.scatter(pc_est[:,0], pc_est[:, 1], label="ests")
+		# plt.figure(figsize=(7,7))
+		# plt.scatter(pc_true[:, 0], pc_true[:, 1], label="true")
+		# plt.scatter(pc_est[:,0], pc_est[:, 1], label="ests")
 		
-		plt.legend()
-		plt.show()
+		# plt.legend()
+		# plt.show()
 		# print(iteration)
 
 		distance, indices = kdtree.query(pc_est)

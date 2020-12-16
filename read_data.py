@@ -16,16 +16,16 @@ from tqdm import tqdm
 max_range = 3.5 # INF
 
 def main():
-	src_path_log = "./turtlebot_log.txt"
-	# src_path_log = "./turtlebot_log_house.txt"
+	# src_path_log = "./turtlebot_log.txt"
+	src_path_log = "./turtlebot_log_house.txt"
 	logfile = open(src_path_log, 'r')
 	print("=================GMAPPING==================")
 
 	# Initialize Map and Visualizer
-	length = 10
-	width = 10
-	# length = 25
-	# width = 25
+	# length = 10
+	# width = 10
+	length = 25
+	width = 25
 	map_resolution = 0.05
 	gridmap = GridMap(map_resolution, length, width)
 
@@ -37,9 +37,15 @@ def main():
 	num_sample_particle = 10
 	num_particle = 3
 
-	initial_pose = np.array([4, 6, 0]) # Initialization for pose
-	# initial_pose = np.array([10,12, 0]) # Initialization for pose
+	# initial_pose = np.array([4, 6, 0]) # Initialization for pose
+	initial_pose = np.array([10,12, 0]) # Initialization for pose
 	#X = np.array([0, 0, 0]) # Initialization for pose
+
+	# true_pose = np.array([4, 6, 0])
+	true_pose = np.array([10, 12, 0])
+	f = open("./results/comparison_house.txt", "w")
+	# f.write("Woops! I have deleted the content!")
+	# f.close()
 
 
 
@@ -55,7 +61,7 @@ def main():
 
 	count_meas = 0
 	for time_idx, line in enumerate(logfile):
-		print(time_idx)
+		# print(time_idx)
 		meas_type = line[0]
 		meas_vals = np.fromstring(line[2:], dtype=np.float64, sep=' ')
 
@@ -83,7 +89,7 @@ def main():
 			else:
 				count_meas += 1
 				print("Laser ID", count_meas)
-				print(particles)
+				# print(particles)
 
 				# Get the lastest odometry measurement
 				u_t1 = meas_odom
@@ -98,6 +104,23 @@ def main():
 				max_particle_pose = particles[max_weight_idx, 0]
 				max_particle_map = particles[max_weight_idx, 1]
 				map_visualizer.visualize(max_particle_pose, max_particle_map.p_map)
+
+				## Print pose of max weights point
+				print("max: ", max_particle_pose)
+				max_x = max_particle_pose[0]
+				max_y = max_particle_pose[1]
+				max_z = max_particle_pose[2]
+
+				# Get True Pose
+				
+				true_x = true_pose[0]
+				true_y = true_pose[1]
+				true_z = true_pose[2]
+				true_pose = motion_model(true_pose, odom)
+				print("true: ", true_pose)
+
+				f.write("max " + str(max_x) + " " + str(max_y) + " " + str(max_z) + "\n")
+				f.write("true " + str(true_x) + " " + str(true_y) + " " + str(true_z) + "\n")
 
 				# Iterate through every particle:
 				for p_idx, particle in enumerate(particles):
@@ -230,6 +253,24 @@ def main():
 
 					particles = np.array(new_particles)
 					particles[:, 2] /= np.sum(particles[:, 2])
+				
+				# Plot trajectory
+				# particle with the largest weights:
+				previous_max_particle_pose = max_particle_pose
+				particles_weights = particles[:, 2]
+				max_weight_idx = np.argmax(particles_weights)
+				max_particle_pose = particles[max_weight_idx, 0]
+				max_particle_map = particles[max_weight_idx, 1]
+				# map_visualizer.visualize(max_particle_pose, max_particle_map.p_map)
+
+				## Print pose of max weights point
+				# print("max: ", max_particle_pose)
+				# print(previous_max_particle_pose[0:2], max_particle_pose[0:2])
+				# plt.plot(previous_max_particle_pose[0:2]/map_resolution, max_particle_pose[0:2]/map_resolution, 'r-')
+
+
+
+
 				# Update u_t0
 				u_t0 = u_t1
 				

@@ -11,6 +11,7 @@ class MapVisualizer:
         self.resolution=size_meters/pixels
         self.vehicle=None
         self.img=None
+        self.previous_X = [-1, -1]
         self.setlabels()
 
     def setlabels(self):
@@ -43,10 +44,13 @@ class MapVisualizer:
             self.vehicle.remove()
         self.vehicle=self.ax.arrow(X[0]/self.resolution, X[1]/self.resolution,
                 0.1*np.cos(X[2]), 0.1*np.sin(X[2]), head_width=2, fc='r', ec='r')
+        if (self.previous_X[0] != -1):
+            self.ax.plot([self.previous_X[0]/self.resolution, X[0]/self.resolution], [self.previous_X[1]/self.resolution, X[1]/self.resolution], "r")
         if self.img is None:
             self.img = self.ax.imshow(map_matrix.T, cmap='Greys')
         else:
             self.img.set_data(map_matrix.T)
+        self.previous_X = X
         plt.pause(0.0001)
         plt.draw()
 
